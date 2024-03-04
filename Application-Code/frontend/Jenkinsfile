@@ -57,7 +57,7 @@ pipeline{
             steps{
                 script{
                     withDockerRegistry(credentialsId: 'dockerhub', toolName: 'docker'){
-                        sh 'docker build -t mukeshr29/todo-frontend Application-Code\frontend\Dockerfile'
+                        sh 'docker build -t mukeshr29/todo-frontend Application-Code\frontend\.'
                     }
                 }
             }
