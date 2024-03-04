@@ -1,0 +1,80 @@
+pipeline{
+    agent any
+    tools{
+        jdk 'jdk17'
+        nodejs 'node16'
+    }
+    environment{
+        SCANNER_HOME=tool 'sonar-scanner'
+    }
+    stages{
+        stage('clean work space'){
+            steps{
+                cleanWs()
+            }
+        }
+        stage('git checkout'){
+            steps{
+                git branch: 'main', url: 'https://github.com/mukeshr-29/project-34-3tier-todo-list.git'
+            }
+        }
+        stage('install dependencies'){
+            steps{
+                sh 'npm install'
+            }
+        }
+        stage('static code analysis'){
+            steps{
+                script{
+                    withSonarQubeEnv(credentialsId: 'sonar-token',installationName: 'sonar-server'){
+                        sh '''
+                            $SCANNER_HOME/bin/sonar-scanner -Dsonar.projectKey=backend-todo \
+                                -Dsonar.projectName=backend-todo
+                        '''
+                    }
+                }
+            }
+        }
+        stage('quality gate analysis'){
+            steps{
+                script{
+                    waitForQualityGate abortPipeline: false, credentialsId: 'sonar-token'
+                }
+            }
+        }
+        stage('owasp dependency check'){
+            steps{
+                dependencyCheck additionalArguments: '--scan ./ --disableYarnAudit --disableNodeAudit', odcInstallation: 'dp-check'
+                dependencyCheckPublisher pattern: '**/dependency-check-report.xml'
+            }
+        }
+        stage('trivy file scan'){
+            steps{
+                sh 'trivy fs . > trivyfs.txt'
+            }
+        }
+        stage('docker img build and tag'){
+            steps{
+                script{
+                    withDockerRegistry(credentialsId: 'dockerhub', toolName: 'docker'){
+                        sh 'docker build -t mukeshr29/todo-backend /var/lib/jenkins/workspace/3-tier-backend/Application-Code/backend/.'
+                    }
+                }
+            }
+        }
+        stage('trivy image scan'){
+            steps{
+                sh 'trivy image mukeshr29/todo-backend > trivyimg.txt'
+            }
+        }
+        stage('push img to dockerhub'){
+            steps{
+                script{
+                    withDockerRegistry(credentialsId: 'dockerhub', toolName: 'docker'){
+                        sh 'docker push mukeshr29/todo-backend'
+                    }
+                }
+            }
+        }
+    }
+}
