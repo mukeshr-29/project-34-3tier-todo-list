@@ -57,7 +57,7 @@ pipeline{
             steps{
                 script{
                     withDockerRegistry(credentialsId: 'dockerhub', toolName: 'docker'){
-                        sh 'docker build -t mukeshr29/todo-frontend Application-Code\frontend\.'
+                        sh 'docker build -t mukeshr29/todo-frontend /var/lib/jenkins/workspace/3-tier-frontend/Application-Code/frontend/.'
                     }
                 }
             }
