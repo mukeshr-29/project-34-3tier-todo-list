@@ -53,5 +53,28 @@ pipeline{
                 sh 'trivy fs . > trivyfs.txt'
             }
         }
+        stage('docker img build and tag'){
+            steps{
+                script{
+                    withDockerRegistry(credentialsId: 'dockerhub', toolName: 'docker'){
+                        sh 'docker build -t mukeshr29/todo-frontend \Application-Code\frontend\Dockerfile'
+                    }
+                }
+            }
+        }
+        stage('trivy image scan'){
+            steps{
+                sh 'trivy image mukeshr29/todo-frontend > trivyimg.txt'
+            }
+        }
+        stage('push img to dockerhub'){
+            steps{
+                script{
+                    withDockerRegistry(credentialsId: 'dockerhub', toolName: 'docker'){
+                        sh 'docker push mukeshr29/todo-frontend'
+                    }
+                }
+            }
+        }
     }
 }
