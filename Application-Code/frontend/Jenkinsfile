@@ -1,0 +1,62 @@
+pipeline{
+    agent any
+    tools{
+        jdk 'jdk17'
+        nodejs 'node16'
+    }
+    environment{
+        SCANNER_HOME=tool 'sonar-scanner'
+    }
+    stages{
+        stage('clean work space'){
+            steps{
+                cleanWs()
+            }
+        }
+        stage('git checkout'){
+            steps{
+                git branch: 'main', url: 'https://github.com/mukeshr-29/project-34-3tier-todo-list.git'
+            }
+        }
+        stage('install dependencies'){
+            steps{
+                sh 'npm install'
+            }
+        }
+        stage('unit testing'){
+            steps{
+                sh 'npm test'
+            }
+        }
+        stage('static code analysis'){
+            steps{
+                script{
+                    withSonarQubeEnv(credentialsId: 'sonar-token',installationName: 'sonar-server'){
+                        sh '''
+                            $SCANNER_HOME/bin/sonar-scanner -Dsonar.projectKey=frontend-todo \
+                                -Dsonar.projectName=frontend-todo
+                        '''
+                    }
+                }
+            }
+        }
+        stage('quality gate analysis'){
+            steps{
+                script{
+                    waitForQualityGate abortPipeline: false, credentialsId: 'sonar-token'
+                }
+            }
+        }
+        stage('owasp dependency check'){
+            steps{
+                dependencyCheck additionalArguments: '--scan ./ --disableYarnAudit --disableNodeAudit', odcInstallation: 'dp-check'
+                dependencyCheckPublisher pattern: '**/dependency-check-report.xml'
+            }
+        }
+        stage('trivy file scan'){
+            steps{
+                sh 'trivy fs . > trivyfs.txt'
+            }
+        }
+    }
+}
