@@ -22,7 +22,7 @@ spec:
     spec:
       containers:
       - name: todo-backend
-        image: mukeshr29/todo-backend
+        image: mukeshr29/todo-backend:latest
         imagePullPolicy: Always
         env:
           - name: MONGO_CONN_STR
