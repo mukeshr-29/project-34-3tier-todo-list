@@ -78,7 +78,7 @@ pipeline{
         }
         stage('remove img from local'){
             steps{
-                sh 'rmi -f mukeshr29/todo-frontend'
+                sh 'docker rmi -f mukeshr29/todo-frontend'
             }
         }
     }
