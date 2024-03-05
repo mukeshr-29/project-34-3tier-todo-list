@@ -76,5 +76,10 @@ pipeline{
                 }
             }
         }
+        stage('remove img from local'){
+            steps{
+                sh 'rmi -f mukeshr29/todo-frontend'
+            }
+        }
     }
 }
