@@ -7,4 +7,4 @@ RUN npm install
 FROM node:19-alpine3.15
 WORKDIR /app
 COPY --from=build /app /app/
-CMD [ "npm", "index.js" ]
+CMD [ "node", "index.js" ]
